@@ -1,33 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useRef } from "react";
+import { Title } from "./components/Title"
+import { Game } from "./services/game";
 
 function App() {
-  const [count, setCount] = useState(0)
+  let keyState: any = {}
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const game = new Game(
+    {
+      width: 1000,
+      height: 540,
+      fps: 144
+    },
+    {
+      width: 7,
+      height: 66,
+      x: 45,
+      y: 540 / 2,
+      speed: 144 / 25
+    }
+  );
+
+  useEffect(() => {
+    const contextCanvas = canvasRef.current?.getContext("2d");
+
+    if (contextCanvas != null) {
+
+      window.addEventListener('keydown', function (e: any) {
+        keyState[e.keyCode || e.which] = true
+      }, true)
+
+      window.addEventListener('keyup', function (e: any) {
+        keyState[e.keyCode || e.which] = false
+      }, true)
+
+      game.init(contextCanvas);
+
+      setInterval(() => game.movePlayer(keyState), 10)
+      game.updateGame();
+    }
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className="bg-black w-screen h-screen flex flex-col items-center p-10 gap-y-4">
+      <Title text="Pong Game" />
+
+      <canvas
+        ref={canvasRef}
+        width={game.settings.width}
+        height={game.settings.height}
+      />
+    </div>
   )
 }
 
